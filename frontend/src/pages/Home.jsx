@@ -1,8 +1,20 @@
 import React from "react";
+import { useEffect, useState } from "react";
 import Product from "../components/Product";
-import products from "../products";
+import axios from "axios";
 
 const Home = () => {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const { data } = await axios.get("/api/products");
+      setProducts(data);
+    };
+
+    fetchProducts();
+  }, []);
+
   return (
     <div className="min-h-screen bg-off-white">
       {/* Container */}

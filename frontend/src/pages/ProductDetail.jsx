@@ -1,12 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import products from "../products";
+import axios from "axios";
 
 const ProductDetail = () => {
   const { id: productId } = useParams();
   const navigate = useNavigate();
-  const product = products.find((item) => item._id === productId);
   const [quantity, setQuantity] = useState(1);
+  const [product, setProduct] = useState(null);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      const { data } = await axios.get(`/api/products/${productId}`);
+      setProduct(data);
+    };
+
+    fetchProduct();
+  }, [productId]);
 
   if (!product) {
     return (
