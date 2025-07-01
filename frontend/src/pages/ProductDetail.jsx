@@ -1,29 +1,129 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useGetProductByIdQuery } from "../slices/productSlice";
+import Loader from "../components/Loader"; // Adjust path as needed
+import { useDispatch } from "react-redux";
+import { addToCart } from "../slices/cartSlice"; // Adjust path as needed
 
 const ProductDetail = () => {
   const { id: productId } = useParams();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
-  const [product, setProduct] = useState(null);
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      const { data } = await axios.get(`/api/products/${productId}`);
-      setProduct(data);
-    };
+  const { data: product, error, isLoading } = useGetProductByIdQuery(productId);
 
-    fetchProduct();
-  }, [productId]);
+  const dispatch = useDispatch();
 
+  const addToCartHandler = () => {
+    dispatch(
+      addToCart({
+        product: {
+          _id: product._id,
+          name: product.name,
+          image: product.image,
+          price: product.price,
+          brand: product.brand,
+          category: product.category,
+          countInStock: product.countInStock,
+        },
+        // ...product,
+        quantity: quantity,
+      })
+    );
+    console.log(product);
+    navigate("/cart");
+  };
+
+  // Loading State
+  if (isLoading) {
+    return <Loader message="Loading product details..." />;
+  }
+
+  // Error State
+  if (error) {
+    return (
+      <div className="min-h-screen bg-off-white flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-6">
+          <div className="w-20 h-20 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <svg
+              className="w-10 h-10 text-red-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+
+          <h1 className="text-3xl font-display font-bold text-coal mb-4">
+            Something went wrong
+          </h1>
+
+          <p className="text-gray-600 mb-2">
+            {error?.data?.message ||
+              error?.error ||
+              "Failed to load product details"}
+          </p>
+
+          {error?.status && (
+            <p className="text-gray-400 text-sm mb-6">
+              Error Code: {error.status}
+            </p>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-coal text-white px-6 py-3 rounded-xl font-medium hover:bg-charcoal transition-colors"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => navigate("/")}
+              className="border-2 border-gray-200 text-gray-600 px-6 py-3 rounded-xl font-medium hover:border-charcoal hover:text-coal transition-colors"
+            >
+              Back to Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Product Not Found State
   if (!product) {
     return (
       <div className="min-h-screen bg-off-white flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-display font-bold text-coal mb-4">
+        <div className="text-center max-w-md mx-auto px-6">
+          <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <svg
+              className="w-10 h-10 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+
+          <h1 className="text-3xl font-display font-bold text-coal mb-4">
             Product Not Found
           </h1>
+
+          <p className="text-gray-600 mb-6">
+            The product you're looking for doesn't exist or has been removed.
+          </p>
+
           <button
             onClick={() => navigate("/")}
             className="bg-coal text-white px-6 py-3 rounded-xl font-medium hover:bg-charcoal transition-colors"
@@ -217,7 +317,10 @@ const ProductDetail = () => {
                 </div>
 
                 {/* Add to Cart Button */}
-                <button className="w-full bg-coal text-white py-4 rounded-2xl font-semibold text-lg hover:bg-charcoal transition-colors transform hover:scale-[0.98] active:scale-95">
+                <button
+                  onClick={addToCartHandler}
+                  className="w-full bg-coal text-white py-4 rounded-2xl font-semibold text-lg hover:bg-charcoal transition-colors transform hover:scale-[0.98] active:scale-95"
+                >
                   Add to Cart - ${(product.price * quantity).toFixed(2)}
                 </button>
               </div>

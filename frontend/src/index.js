@@ -8,9 +8,12 @@ import {
 } from "react-router-dom";
 import "./index.css";
 import App from "./App";
+import { Provider } from "react-redux";
+import store from "./store";
 import reportWebVitals from "./reportWebVitals";
 import Home from "./pages/Home";
 import ProductDetail from "./pages/ProductDetail";
+import Cart from "./pages/Cart";
 // import Products from "./pages/Products";
 
 const router = createBrowserRouter(
@@ -18,6 +21,7 @@ const router = createBrowserRouter(
     <Route path="/" element={<App />}>
       <Route index element={<Home />} />
       <Route path="/product/:id" element={<ProductDetail />} />
+      <Route path="/cart" element={<Cart />} />
     </Route>
   )
 );
@@ -25,7 +29,9 @@ const router = createBrowserRouter(
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <Provider store={store}>
+      <RouterProvider router={router} />
+    </Provider>
   </React.StrictMode>
 );
 

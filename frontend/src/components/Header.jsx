@@ -1,10 +1,14 @@
 import { useState } from "react";
 import React from "react";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { UserOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Get cart count from Redux store
+  const { cartItems } = useSelector((state) => state.cart);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -27,9 +31,16 @@ const Header = () => {
           <nav className="hidden md:flex items-center space-x-6">
             <Link
               to="/cart"
-              className="text-gray-400 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md items-center gap-2 flex"
+              className="text-gray-400 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md items-center gap-2 flex relative"
             >
-              <ShoppingCartOutlined />
+              <div className="relative">
+                <ShoppingCartOutlined />
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-white text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center min-w-[1.25rem] shadow-soft">
+                    {cartItems.length > 99 ? "99+" : cartItems.length}
+                  </span>
+                )}
+              </div>
               <span>Cart</span>
             </Link>
             <Link
@@ -78,15 +89,24 @@ const Header = () => {
           <nav className="py-4 space-y-2">
             <Link
               to="/cart"
-              className="block w-full text-left text-gray-400 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md"
+              className="block w-full text-left text-gray-400 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md flex items-center gap-2"
             >
-              Cart
+              <div className="relative">
+                <ShoppingCartOutlined />
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-white text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center min-w-[1.25rem] shadow-soft">
+                    {cartItems.length > 99 ? "99+" : cartItems.length}
+                  </span>
+                )}
+              </div>
+              <span>Cart</span>
             </Link>
             <Link
               to="/login"
-              className="block w-full text-left text-gray-400 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md"
+              className="block w-full text-left text-gray-400 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md flex items-center gap-2"
             >
-              Sign in
+              <UserOutlined />
+              <span>Sign in</span>
             </Link>
           </nav>
         </div>
