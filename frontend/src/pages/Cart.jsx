@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   removeFromCart,
   updateCartItemQuantity,
@@ -8,6 +9,7 @@ import {
 
 const Cart = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [feedback, setFeedback] = useState(null);
 
   // Show feedback message temporarily
@@ -43,12 +45,12 @@ const Cart = () => {
 
   const checkoutHandler = () => {
     // Navigate to checkout/login page
-    window.location.href = "/login?redirect=/shipping";
+    navigate("/login?redirect=/shipping");
   };
 
   const continueShopping = () => {
     // Navigate back to products page
-    window.location.href = "/";
+    navigate("/");
   };
 
   const clearCartHandler = () => {

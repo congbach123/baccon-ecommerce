@@ -1,18 +1,65 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import React from "react";
 import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { UserOutlined, ShoppingCartOutlined } from "@ant-design/icons";
+import { useSelector, useDispatch } from "react-redux";
+import { useLogoutMutation } from "../slices/userSlice";
+import { useNavigate } from "react-router-dom";
+import { logout } from "../slices/authSlice";
+import {
+  UserOutlined,
+  ShoppingCartOutlined,
+  LogoutOutlined,
+  DownOutlined,
+} from "@ant-design/icons";
+import { toast } from "react-toastify";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
-  // Get cart count from Redux store
+  // Get cart count and user info from Redux store
   const { cartItems } = useSelector((state) => state.cart);
+  const { userInfo } = useSelector((state) => state.auth);
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const [logoutApiCall] = useLogoutMutation();
+
+  const handleLogout = async () => {
+    try {
+      await logoutApiCall().unwrap();
+      dispatch(logout());
+      navigate("/login");
+      console.log("Logout successful");
+    } catch (error) {
+      toast.error(error);
+      console.error("Logout failed:", error);
+    }
+  };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  const toggleProfileDropdown = () => {
+    setIsProfileDropdownOpen(!isProfileDropdownOpen);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <header className="bg-black">
@@ -43,13 +90,61 @@ const Header = () => {
               </div>
               <span>Cart</span>
             </Link>
-            <Link
-              to="/login"
-              className="text-gray-400 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md items-center gap-2 flex"
-            >
-              <UserOutlined />
-              <span>Sign in</span>
-            </Link>
+
+            {/* Profile Dropdown or Sign In */}
+            {userInfo ? (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={toggleProfileDropdown}
+                  className="text-gray-400 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md items-center gap-2 flex focus:outline-none"
+                >
+                  <UserOutlined />
+                  <span className="truncate max-w-24">
+                    {userInfo.name || userInfo.email}
+                  </span>
+                  <DownOutlined
+                    className={`text-xs transition-transform duration-200 ${
+                      isProfileDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* Dropdown Menu */}
+                <div
+                  className={`absolute right-0 mt-2 w-48 bg-coal border border-charcoal rounded-xl shadow-large transition-all duration-200 ease-out z-50 ${
+                    isProfileDropdownOpen
+                      ? "opacity-100 transform scale-100 translate-y-0"
+                      : "opacity-0 transform scale-95 -translate-y-2 pointer-events-none"
+                  }`}
+                >
+                  <div className="py-2">
+                    <Link
+                      to="/profile"
+                      className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-charcoal transition-colors duration-200"
+                      onClick={() => setIsProfileDropdownOpen(false)}
+                    >
+                      <UserOutlined className="mr-2" />
+                      Profile
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-gray-300 hover:text-white hover:bg-charcoal transition-colors duration-200"
+                    >
+                      <LogoutOutlined className="mr-2" />
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="text-gray-400 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md items-center gap-2 flex"
+              >
+                <UserOutlined />
+                <span>Sign in</span>
+              </Link>
+            )}
           </nav>
 
           {/* Mobile Menu Button */}
@@ -83,7 +178,7 @@ const Header = () => {
         {/* Mobile Navigation Menu */}
         <div
           className={`md:hidden transition-all duration-300 ease-in-out ${
-            isMenuOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+            isMenuOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
           } overflow-hidden`}
         >
           <nav className="py-4 space-y-2">
@@ -101,13 +196,34 @@ const Header = () => {
               </div>
               <span>Cart</span>
             </Link>
-            <Link
-              to="/login"
-              className="block w-full text-left text-gray-400 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md flex items-center gap-2"
-            >
-              <UserOutlined />
-              <span>Sign in</span>
-            </Link>
+
+            {/* Mobile Profile Section */}
+            {userInfo ? (
+              <>
+                <Link
+                  to="/profile"
+                  className="block w-full text-left text-gray-400 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md flex items-center gap-2"
+                >
+                  <UserOutlined />
+                  <span>Profile</span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left text-gray-400 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md flex items-center gap-2"
+                >
+                  <LogoutOutlined />
+                  <span>Sign Out</span>
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="block w-full text-left text-gray-400 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md flex items-center gap-2"
+              >
+                <UserOutlined />
+                <span>Sign in</span>
+              </Link>
+            )}
           </nav>
         </div>
       </div>
