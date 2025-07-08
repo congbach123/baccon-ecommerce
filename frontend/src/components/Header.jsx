@@ -2,9 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import React from "react";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { useLogoutMutation } from "../slices/userSlice";
+import { useLogoutMutation } from "../pages/slices/userSlice";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../slices/authSlice";
+import { logout } from "../pages/slices/authSlice";
 import {
   UserOutlined,
   ShoppingCartOutlined,

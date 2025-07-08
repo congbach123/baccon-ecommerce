@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   removeFromCart,
   updateCartItemQuantity,
   clearCart,
-} from "../slices/cartSlice";
+} from "./slices/cartSlice";
 
 const Cart = () => {
   const dispatch = useDispatch();
@@ -28,13 +28,13 @@ const Cart = () => {
     totalPrice,
   } = cart;
 
-  const updateQuantityHandler = (productId, quantity) => {
-    if (quantity <= 0) {
+  const updateQuantityHandler = (productId, qty) => {
+    if (qty <= 0) {
       dispatch(removeFromCart(productId));
       showFeedback("Item removed from cart");
     } else {
-      dispatch(updateCartItemQuantity({ productId, quantity }));
-      showFeedback(`Quantity updated to ${quantity}`);
+      dispatch(updateCartItemQuantity({ productId, qty })); // Changed: quantity -> qty
+      showFeedback(`Quantity updated to ${qty}`);
     }
   };
 
@@ -45,7 +45,7 @@ const Cart = () => {
 
   const checkoutHandler = () => {
     // Navigate to checkout/login page
-    navigate("/login?redirect=/shipping");
+    navigate("/login?redirect=/order");
   };
 
   const continueShopping = () => {
@@ -127,13 +127,13 @@ const Cart = () => {
 
               <div className="divide-y divide-gray-200">
                 {cartItems.map((item) => (
-                  <div key={item.product._id} className="p-6 animate-fade-in">
+                  <div key={item._id} className="p-6 animate-fade-in">
                     <div className="flex items-start space-x-4">
                       {/* Product Image */}
                       <div className="flex-shrink-0">
                         <img
-                          src={item.product.image}
-                          alt={item.product.name}
+                          src={item.image}
+                          alt={item.name}
                           className="w-20 h-20 object-cover rounded-xl border border-gray-200"
                         />
                       </div>
@@ -141,19 +141,18 @@ const Cart = () => {
                       {/* Product Details */}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-medium text-coal mb-1">
-                          {item.product.name}
+                          {item.name}
                         </h3>
                         <p className="text-gray-600 text-sm mb-2">
-                          {item.product.brand}
-                          {item.product.countInStock &&
-                            item.product.countInStock <= 5 && (
-                              <span className="ml-2 text-orange-600 font-medium">
-                                Only {item.product.countInStock} left!
-                              </span>
-                            )}
+                          {item.brand}
+                          {item.countInStock && item.countInStock <= 5 && (
+                            <span className="ml-2 text-orange-600 font-medium">
+                              Only {item.countInStock} left!
+                            </span>
+                          )}
                         </p>
                         <p className="text-xl font-semibold text-coal">
-                          ${item.product.price}
+                          ${item.price}
                         </p>
                       </div>
 
@@ -162,15 +161,12 @@ const Cart = () => {
                         <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
                           <button
                             onClick={() =>
-                              updateQuantityHandler(
-                                item.product._id,
-                                item.quantity - 1
-                              )
+                              updateQuantityHandler(item._id, item.qty - 1)
                             }
                             className="p-2 hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
-                            disabled={item.quantity <= 1}
+                            disabled={item.qty <= 1}
                             title={
-                              item.quantity <= 1
+                              item.qty <= 1
                                 ? "Minimum quantity reached"
                                 : "Decrease quantity"
                             }
@@ -191,22 +187,17 @@ const Cart = () => {
                           </button>
                           <div className="px-4 py-2 bg-gray-50 border-x border-gray-300">
                             <span className="text-coal font-medium min-w-[2rem] text-center block animate-scale-in">
-                              {item.quantity}
+                              {item.qty}
                             </span>
                           </div>
                           <button
                             onClick={() =>
-                              updateQuantityHandler(
-                                item.product._id,
-                                item.quantity + 1
-                              )
+                              updateQuantityHandler(item._id, item.qty + 1)
                             }
                             className="p-2 hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
-                            disabled={
-                              item.quantity >= (item.product.countInStock || 99)
-                            }
+                            disabled={item.qty >= (item.countInStock || 99)}
                             title={
-                              item.quantity >= (item.product.countInStock || 99)
+                              item.qty >= (item.countInStock || 99)
                                 ? "Maximum stock reached"
                                 : "Increase quantity"
                             }
@@ -230,7 +221,7 @@ const Cart = () => {
                         {/* Remove Button */}
                         <button
                           onClick={() => {
-                            removeFromCartHandler(item.product._id);
+                            removeFromCartHandler(item._id);
                           }}
                           className="p-2 text-gray-400 hover:text-red-600 transition-colors duration-200 group"
                           title="Remove item"
@@ -254,10 +245,10 @@ const Cart = () => {
                       {/* Item Total */}
                       <div className="text-right min-w-[6rem]">
                         <p className="text-lg font-semibold text-coal animate-scale-in">
-                          ${(item.quantity * item.product.price).toFixed(2)}
+                          ${(item.qty * item.price).toFixed(2)}
                         </p>
                         <p className="text-sm text-gray-500">
-                          ${item.product.price} each
+                          ${item.price} each
                         </p>
                       </div>
                     </div>

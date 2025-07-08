@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import Product from "../components/Product";
-import { useGetProductsQuery } from "../slices/productSlice";
+import { useGetProductsQuery } from "./slices/productSlice";
 
 const Home = () => {
   const { data: products, error, isLoading } = useGetProductsQuery();

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useGetProductByIdQuery } from "../slices/productSlice";
+import { useGetProductByIdQuery } from "./slices/productSlice";
 import Loader from "../components/Loader"; // Adjust path as needed
 import { useDispatch } from "react-redux";
-import { addToCart } from "../slices/cartSlice"; // Adjust path as needed
+import { addToCart } from "./slices/cartSlice"; // Adjust path as needed
 
 const ProductDetail = () => {
   const { id: productId } = useParams();
@@ -17,17 +17,17 @@ const ProductDetail = () => {
   const addToCartHandler = () => {
     dispatch(
       addToCart({
-        product: {
-          _id: product._id,
-          name: product.name,
-          image: product.image,
-          price: product.price,
-          brand: product.brand,
-          category: product.category,
-          countInStock: product.countInStock,
-        },
-        // ...product,
-        quantity: quantity,
+        // product: {
+        //   _id: product._id,
+        //   name: product.name,
+        //   image: product.image,
+        //   price: product.price,
+        //   brand: product.brand,
+        //   category: product.category,
+        //   countInStock: product.countInStock,
+        // },
+        ...product,
+        qty: quantity,
       })
     );
     console.log(product);
