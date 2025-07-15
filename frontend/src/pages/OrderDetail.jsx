@@ -20,8 +20,8 @@ import { useGetOrderDetailsQuery } from "./slices/orderSlice";
 const OrderDetail = () => {
   const { id: orderId } = useParams();
   const navigate = useNavigate();
-  const [showPayment, setShowPayment] = useState(false);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
 
   const {
     data: order,
@@ -55,16 +55,40 @@ const OrderDetail = () => {
     });
   };
 
-  const handlePaymentSuccess = (paymentIntent) => {
-    setPaymentSuccess(true);
-    setShowPayment(false);
-    refetch(); // Refresh order data
-    // You can add a success toast here
-  };
+  const handlePayNow = async () => {
+    if (!user) {
+      setPaymentError("You must be logged in to make a payment");
+      return;
+    }
 
-  const handlePaymentError = (error) => {
-    console.error("Payment failed:", error);
-    // You can add an error toast here
+    setIsProcessingPayment(true);
+    setPaymentError("");
+
+    try {
+      const response = await fetch(
+        `/api/orders/${orderId}/create-checkout-session`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to create payment session");
+      }
+
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
+    } catch (error) {
+      console.error("Payment error:", error);
+      setPaymentError(error.message || "Failed to process payment");
+      setIsProcessingPayment(false);
+    }
   };
 
   return (
@@ -73,10 +97,7 @@ const OrderDetail = () => {
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => {
-              // In your actual implementation: navigate(-1);
-              console.log("Navigate back");
-            }}
+            onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -292,7 +313,9 @@ const OrderDetail = () => {
                 <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
                   <CreditCard className="w-5 h-5 text-gray-600" />
                   <span className="font-medium text-gray-900">
-                    Credit/Debit Card
+                    {order.paymentMethod === "COD"
+                      ? "Cash on Delivery"
+                      : "Credit/Debit Card"}
                   </span>
                   <div
                     className={`ml-auto px-3 py-1 rounded-full text-sm font-medium ${
@@ -305,51 +328,43 @@ const OrderDetail = () => {
                   </div>
                 </div>
 
-                {/* Stripe Payment Integration */}
-                {!order.isPaid && (
+                {/* Payment Action for Non-COD Orders */}
+                {!order.isPaid && order.paymentMethod !== "COD" && (
                   <div className="space-y-4">
-                    {!showPayment ? (
-                      <div className="p-4 border-2 border-dashed border-gray-300 rounded-xl text-center">
-                        <p className="text-gray-600 mb-4">
-                          Complete your payment to process the order
-                        </p>
-                        <button
-                          onClick={() => setShowPayment(true)}
-                          className="bg-black text-white px-6 py-3 rounded-xl font-semibold hover:bg-charcoal transition-colors"
-                        >
-                          Pay ${order.totalPrice.toFixed(2)}
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="p-4 border border-gray-300 rounded-xl">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="font-semibold text-gray-900">
-                            Complete Payment
-                          </h3>
-                          <button
-                            onClick={() => setShowPayment(false)}
-                            className="text-gray-500 hover:text-gray-700"
-                          >
-                            Cancel
-                          </button>
+                    <div className="p-4 border-2 border-dashed border-gray-300 rounded-xl text-center">
+                      <p className="text-gray-600 mb-4">
+                        Complete your payment to process the order
+                      </p>
+                      {paymentError && (
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-red-600 text-sm">{paymentError}</p>
                         </div>
-                        {/* <StripePayment
-                          orderId={order._id}
-                          totalAmount={order.totalPrice}
-                          onPaymentSuccess={handlePaymentSuccess}
-                          onPaymentError={handlePaymentError}
-                        /> */}
-                      </div>
-                    )}
+                      )}
+                      <button
+                        onClick={handlePayNow}
+                        disabled={isProcessingPayment}
+                        className="bg-black text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isProcessingPayment ? (
+                          <span className="flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            Processing...
+                          </span>
+                        ) : (
+                          `Pay $${order.totalPrice.toFixed(2)}`
+                        )}
+                      </button>
+                    </div>
                   </div>
                 )}
 
-                {paymentSuccess && (
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
+                {/* COD Information */}
+                {order.paymentMethod === "COD" && (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
                     <div className="flex items-center gap-2">
-                      <Check className="w-5 h-5 text-green-600" />
-                      <span className="font-medium text-green-800">
-                        Payment successful! Your order has been updated.
+                      <Clock className="w-5 h-5 text-blue-600" />
+                      <span className="font-medium text-blue-800">
+                        Cash on Delivery - Pay when your order arrives
                       </span>
                     </div>
                   </div>
@@ -405,13 +420,21 @@ const OrderDetail = () => {
               </div>
 
               {/* Quick Payment Button */}
-              {!order.isPaid && (
+              {!order.isPaid && order.paymentMethod !== "COD" && (
                 <div className="mt-6">
                   <button
-                    onClick={() => setShowPayment(true)}
-                    className="w-full bg-black text-white py-3 px-4 rounded-xl font-semibold hover:bg-charcoal transition-colors"
+                    onClick={handlePayNow}
+                    disabled={isProcessingPayment}
+                    className="w-full bg-black text-white py-3 px-4 rounded-xl font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Pay Now - ${order.totalPrice.toFixed(2)}
+                    {isProcessingPayment ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Processing...
+                      </span>
+                    ) : (
+                      `Pay Now - $${order.totalPrice.toFixed(2)}`
+                    )}
                   </button>
                 </div>
               )}

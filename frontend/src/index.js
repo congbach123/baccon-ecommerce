@@ -19,6 +19,7 @@ import Register from "./pages/Register";
 import Order from "./pages/Order";
 import PrivateRoute from "./components/PrivateRoute";
 import OrderDetail from "./pages/OrderDetail";
+import PaymentSuccess from "./components/PaymentSuccess";
 // import Products from "./pages/Products";
 
 const router = createBrowserRouter(
@@ -33,6 +34,7 @@ const router = createBrowserRouter(
       <Route path="" element={<PrivateRoute />}>
         <Route path="/order" element={<Order />} />
         <Route path="/order/:id" element={<OrderDetail />} />
+        <Route path="/payment-success/:orderId" element={<PaymentSuccess />} />
       </Route>
     </Route>
   )
