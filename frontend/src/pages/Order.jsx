@@ -302,6 +302,7 @@ const Order = () => {
                         </label>
                         <input
                           type="text"
+                          required
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
                           placeholder="1234 5678 9012 3456"
                         />
@@ -312,6 +313,7 @@ const Order = () => {
                         </label>
                         <input
                           type="text"
+                          required
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
                           placeholder="MM/YY"
                         />
@@ -322,6 +324,7 @@ const Order = () => {
                         </label>
                         <input
                           type="text"
+                          required
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
                           placeholder="123"
                         />
@@ -332,6 +335,7 @@ const Order = () => {
                         </label>
                         <input
                           type="text"
+                          required
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
                           placeholder="John Smith"
                         />
@@ -344,15 +348,15 @@ const Order = () => {
                   <input
                     type="radio"
                     name="payment"
-                    value="paypal"
-                    checked={selectedPayment === "paypal"}
+                    value="stripe"
+                    checked={selectedPayment === "stripe"}
                     onChange={(e) => handlePaymentChange(e.target.value)}
                     className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900"
                   />
                   <div className="w-5 h-5 bg-blue-600 rounded ml-4 flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">P</span>
+                    <span className="text-white text-xs font-bold">S</span>
                   </div>
-                  <span className="ml-3 font-medium text-gray-900">PayPal</span>
+                  <span className="ml-3 font-medium text-gray-900">Stripe</span>
                 </label>
 
                 <label className="flex items-center p-4 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
