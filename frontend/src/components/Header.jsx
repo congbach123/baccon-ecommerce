@@ -10,6 +10,8 @@ import {
   ShoppingCartOutlined,
   LogoutOutlined,
   DownOutlined,
+  ShoppingOutlined,
+  UnorderedListOutlined, // Added for Admin Orders icon
 } from "@ant-design/icons";
 import { toast } from "react-toastify";
 
@@ -126,6 +128,47 @@ const Header = () => {
                       <UserOutlined className="mr-2" />
                       Profile
                     </Link>
+                    <Link
+                      to="/myorders"
+                      className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-charcoal transition-colors duration-200"
+                      onClick={() => setIsProfileDropdownOpen(false)}
+                    >
+                      <ShoppingOutlined className="mr-2" />
+                      My Orders
+                    </Link>
+
+                    {/* Admin Only Navigation */}
+                    {userInfo.isAdmin && (
+                      <>
+                        {/* <div className="border-t border-charcoal my-1"></div> */}
+                        <Link
+                          to="/admin/orderlist"
+                          className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-charcoal transition-colors duration-200"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          <UnorderedListOutlined className="mr-2" />
+                          Manage Orders
+                        </Link>
+                        <Link
+                          to="/admin/productlist"
+                          className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-charcoal transition-colors duration-200"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          <UnorderedListOutlined className="mr-2" />
+                          Manage Products
+                        </Link>
+                        <Link
+                          to="/admin/userlist"
+                          className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-charcoal transition-colors duration-200"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                        >
+                          <UnorderedListOutlined className="mr-2" />
+                          Manage Users
+                        </Link>
+                      </>
+                    )}
+
+                    <div className="border-t border-charcoal my-1"></div>
                     <button
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-2 text-gray-300 hover:text-white hover:bg-charcoal transition-colors duration-200"
@@ -178,7 +221,7 @@ const Header = () => {
         {/* Mobile Navigation Menu */}
         <div
           className={`md:hidden transition-all duration-300 ease-in-out ${
-            isMenuOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
+            isMenuOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
           } overflow-hidden`}
         >
           <nav className="py-4 space-y-2">
@@ -207,6 +250,25 @@ const Header = () => {
                   <UserOutlined />
                   <span>Profile</span>
                 </Link>
+                <Link
+                  to="/myorders"
+                  className="block w-full text-left text-gray-400 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md flex items-center gap-2"
+                >
+                  <ShoppingOutlined />
+                  <span>My Orders</span>
+                </Link>
+
+                {/* Admin Only Navigation - Mobile */}
+                {userInfo.isAdmin && (
+                  <Link
+                    to="/orderlist"
+                    className="block w-full text-left text-gray-400 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md flex items-center gap-2 border-l-2 border-accent-500 bg-gray-900/20"
+                  >
+                    <UnorderedListOutlined />
+                    <span>Manage Orders</span>
+                  </Link>
+                )}
+
                 <button
                   onClick={handleLogout}
                   className="block w-full text-left text-gray-400 hover:text-white transition-colors duration-200 px-3 py-2 rounded-md flex items-center gap-2"

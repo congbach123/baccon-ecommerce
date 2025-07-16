@@ -15,13 +15,18 @@ import {
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useGetOrderDetailsQuery } from "./slices/orderSlice";
+import {
+  useGetOrderDetailsQuery,
+  useDeliverOrderMutation,
+} from "./slices/orderSlice";
+import { toast } from "react-toastify";
 
 const OrderDetail = () => {
   const { id: orderId } = useParams();
   const navigate = useNavigate();
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState("");
+  const [deliverOrder] = useDeliverOrderMutation();
 
   const {
     data: order,
@@ -42,7 +47,7 @@ const OrderDetail = () => {
 
   const copyOrderId = () => {
     navigator.clipboard.writeText(order._id);
-    // You can add a toast notification here
+    // add notification
   };
 
   const formatDate = (dateString) => {
@@ -88,6 +93,17 @@ const OrderDetail = () => {
       console.error("Payment error:", error);
       setPaymentError(error.message || "Failed to process payment");
       setIsProcessingPayment(false);
+    }
+  };
+
+  const deliverOrderHandler = async () => {
+    try {
+      await deliverOrder(orderId);
+      refetch();
+      toast.success("Order marked as delivered");
+    } catch (error) {
+      console.error("Delivery error:", error);
+      toast.error(error.message || "Failed to mark order as delivered");
     }
   };
 
@@ -329,34 +345,39 @@ const OrderDetail = () => {
                 </div>
 
                 {/* Payment Action for Non-COD Orders */}
-                {!order.isPaid && order.paymentMethod !== "COD" && (
-                  <div className="space-y-4">
-                    <div className="p-4 border-2 border-dashed border-gray-300 rounded-xl text-center">
-                      <p className="text-gray-600 mb-4">
-                        Complete your payment to process the order
-                      </p>
-                      {paymentError && (
-                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                          <p className="text-red-600 text-sm">{paymentError}</p>
-                        </div>
-                      )}
-                      <button
-                        onClick={handlePayNow}
-                        disabled={isProcessingPayment}
-                        className="bg-black text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isProcessingPayment ? (
-                          <span className="flex items-center gap-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            Processing...
-                          </span>
-                        ) : (
-                          `Pay $${order.totalPrice.toFixed(2)}`
+                {user &&
+                  !user.isAdmin &&
+                  !order.isPaid &&
+                  order.paymentMethod !== "COD" && (
+                    <div className="space-y-4">
+                      <div className="p-4 border-2 border-dashed border-gray-300 rounded-xl text-center">
+                        <p className="text-gray-600 mb-4">
+                          Complete your payment to process the order
+                        </p>
+                        {paymentError && (
+                          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-red-600 text-sm">
+                              {paymentError}
+                            </p>
+                          </div>
                         )}
-                      </button>
+                        <button
+                          onClick={handlePayNow}
+                          disabled={isProcessingPayment}
+                          className="bg-black text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isProcessingPayment ? (
+                            <span className="flex items-center gap-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              Processing...
+                            </span>
+                          ) : (
+                            `Pay $${order.totalPrice.toFixed(2)}`
+                          )}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {/* COD Information */}
                 {order.paymentMethod === "COD" && (
@@ -408,7 +429,7 @@ const OrderDetail = () => {
 
               {/* Additional Actions */}
               <div className="mt-6 space-y-3">
-                <button className="w-full bg-gray-100 text-gray-900 py-3 px-4 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
+                {/* <button className="w-full bg-gray-100 text-gray-900 py-3 px-4 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
                   Track Order
                 </button>
                 <button className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-xl font-semibold hover:bg-gray-50 transition-colors">
@@ -416,28 +437,42 @@ const OrderDetail = () => {
                 </button>
                 <button className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-xl font-semibold hover:bg-gray-50 transition-colors">
                   Contact Support
-                </button>
+                </button> */}
+                {user && user.isAdmin && order.isPaid && !order.isDelivered && (
+                  <button
+                    onClick={deliverOrderHandler}
+                    className="w-full bg-blue-600 text-white py-3 px-4
+                      rounded-xl font-semibold hover:bg-blue-700
+                      transition-colors"
+                  >
+                    {" "}
+                    Mark Delivered
+                  </button>
+                )}
               </div>
 
               {/* Quick Payment Button */}
-              {!order.isPaid && order.paymentMethod !== "COD" && (
-                <div className="mt-6">
-                  <button
-                    onClick={handlePayNow}
-                    disabled={isProcessingPayment}
-                    className="w-full bg-black text-white py-3 px-4 rounded-xl font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isProcessingPayment ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Processing...
-                      </span>
-                    ) : (
-                      `Pay Now - $${order.totalPrice.toFixed(2)}`
-                    )}
-                  </button>
-                </div>
-              )}
+              {user &&
+                !user.isAdmin &&
+                !order.isPaid &&
+                order.paymentMethod !== "COD" && (
+                  <div className="mt-6">
+                    <button
+                      onClick={handlePayNow}
+                      disabled={isProcessingPayment}
+                      className="w-full bg-black text-white py-3 px-4 rounded-xl font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isProcessingPayment ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Processing...
+                        </span>
+                      ) : (
+                        `Pay Now - $${order.totalPrice.toFixed(2)}`
+                      )}
+                    </button>
+                  </div>
+                )}
 
               {/* Estimated Delivery */}
               {!order.isDelivered && (
