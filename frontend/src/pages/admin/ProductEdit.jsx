@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   useGetProductByIdQuery,
   useUpdateProductMutation,
+  useUploadProductImageMutation,
 } from "../slices/productSlice";
 import Loader from "../../components/Loader";
+import { toast } from "react-toastify";
 
 const ProductEdit = () => {
   const { id: productId } = useParams();
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -17,10 +20,13 @@ const ProductEdit = () => {
     description: "",
     price: "",
     countInStock: "",
+    image: "", // Add image to form data
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const {
     data: product,
@@ -30,6 +36,7 @@ const ProductEdit = () => {
   } = useGetProductByIdQuery(productId);
 
   const [updateProduct] = useUpdateProductMutation();
+  const [uploadProductImage] = useUploadProductImageMutation();
 
   // Populate form when product data is loaded
   useEffect(() => {
@@ -41,7 +48,13 @@ const ProductEdit = () => {
         description: product.description || "",
         price: product.price || "",
         countInStock: product.countInStock || "",
+        image: product.image || "",
       });
+
+      // Set image preview if product has an image
+      if (product.image) {
+        setImagePreview(product.image);
+      }
     }
   }, [product]);
 
@@ -108,6 +121,96 @@ const ProductEdit = () => {
     }
   };
 
+  // Handle file selection and upload
+  const handleImageChange = async (e) => {
+    const formData = new FormData();
+    formData.append("image", e.target.files[0]);
+    try {
+      const res = await uploadProductImage(formData).unwrap();
+      toast.success("Image uploaded successfully");
+      setImagePreview(res.image);
+      // Update formData with the new image path
+      setFormData((prev) => ({
+        ...prev,
+        image: res.image,
+      }));
+    } catch (error) {
+      toast.error(error?.data?.message || "Image upload failed");
+    }
+    // const file = e.target.files[0];
+
+    // if (!file) return;
+
+    // // Validate file type
+    // const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+    // if (!allowedTypes.includes(file.type)) {
+    //   setErrors((prev) => ({
+    //     ...prev,
+    //     image: "Please select a valid image file (JPEG, JPG, or PNG)",
+    //   }));
+    //   return;
+    // }
+
+    // // Validate file size (5MB limit)
+    // const maxSize = 5 * 1024 * 1024; // 5MB
+    // if (file.size > maxSize) {
+    //   setErrors((prev) => ({
+    //     ...prev,
+    //     image: "Image file size must be less than 5MB",
+    //   }));
+    //   return;
+    // }
+
+    // // Create preview
+    // const reader = new FileReader();
+    // reader.onloadend = () => {
+    //   setImagePreview(reader.result);
+    // };
+    // reader.readAsDataURL(file);
+
+    // // Upload file
+    // setIsUploading(true);
+    // try {
+    //   const uploadData = new FormData();
+    //   uploadData.append("image", file);
+
+    //   const response = await uploadProductImage(uploadData).unwrap();
+
+    //   // Update form data with uploaded image path
+    //   setFormData((prev) => ({
+    //     ...prev,
+    //     image: response.image,
+    //   }));
+
+    //   // Clear any previous image errors
+    //   setErrors((prev) => ({
+    //     ...prev,
+    //     image: "",
+    //   }));
+    // } catch (error) {
+    //   console.error("Upload failed:", error);
+    //   setErrors((prev) => ({
+    //     ...prev,
+    //     image: "Failed to upload image. Please try again.",
+    //   }));
+    //   setImagePreview(null);
+    // } finally {
+    //   setIsUploading(false);
+    // }
+  };
+
+  // Handle remove image
+  const handleRemoveImage = () => {
+    setImagePreview(null);
+    setFormData((prev) => ({
+      ...prev,
+      image: "",
+    }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -126,6 +229,8 @@ const ProductEdit = () => {
 
       await updateProduct(updatedProduct).unwrap();
 
+      toast.success("Product updated successfully!");
+      refetch(); // Refresh product data
       // Success feedback could be added here
       navigate(-1); // Go back to previous page
     } catch (error) {
@@ -357,36 +462,95 @@ const ProductEdit = () => {
               )}
             </div>
 
-            {/* Image Placeholder */}
+            {/* Product Image Upload */}
             <div>
               <label className="block text-sm font-medium text-coal mb-2">
                 Product Image
               </label>
-              <div className="w-full px-4 py-8 rounded-xl border border-dashed border-gray-300 bg-gray-50 text-center">
-                <div className="text-gray-500">
-                  <svg
-                    className="w-12 h-12 mx-auto mb-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+
+              {/* Image Preview or Upload Area */}
+              {imagePreview ? (
+                <div className="relative">
+                  <div className="w-full h-64 rounded-xl border border-gray-200 overflow-hidden">
+                    <img
+                      src={imagePreview}
+                      alt="Product preview"
+                      className="w-full h-full object-cover"
                     />
-                  </svg>
-                  <p className="text-sm">Later</p>
+                  </div>
+                  <div className="absolute top-3 right-3 flex space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="bg-white text-coal px-3 py-2 rounded-lg text-sm font-medium shadow-soft border border-gray-200 hover:bg-gray-50 transition-colors"
+                    >
+                      Change
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="bg-white text-red-600 px-3 py-2 rounded-lg text-sm font-medium shadow-soft border border-gray-200 hover:bg-red-50 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full px-4 py-8 rounded-xl border border-dashed border-gray-300 bg-gray-50 text-center cursor-pointer hover:border-gray-400 hover:bg-gray-100 transition-colors"
+                >
+                  <div className="text-gray-500">
+                    {isUploading ? (
+                      <div className="flex flex-col items-center">
+                        <div className="w-8 h-8 border-2 border-gray-300 border-t-coal rounded-full animate-spin mb-3"></div>
+                        <p className="text-sm">Uploading image...</p>
+                      </div>
+                    ) : (
+                      <>
+                        <svg
+                          className="w-12 h-12 mx-auto mb-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        <p className="text-sm font-medium mb-1">
+                          Click to upload image
+                        </p>
+                        <p className="text-xs">PNG, JPG, JPEG up to 5MB</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Hidden File Input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png"
+                onChange={handleImageChange}
+                className="hidden"
+                disabled={isUploading}
+              />
+
+              {errors.image && (
+                <p className="text-red-600 text-sm mt-2">{errors.image}</p>
+              )}
             </div>
 
             {/* Action Buttons */}
             <div className="flex space-x-4 pt-6">
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploading}
                 className="flex-1 bg-coal text-white py-3 px-6 rounded-xl font-medium hover:bg-charcoal transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Updating..." : "Update Product"}
@@ -394,7 +558,8 @@ const ProductEdit = () => {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="flex-1 bg-gray-100 text-coal py-3 px-6 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                disabled={isSubmitting || isUploading}
+                className="flex-1 bg-gray-100 text-coal py-3 px-6 rounded-xl font-medium hover:bg-gray-200 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>

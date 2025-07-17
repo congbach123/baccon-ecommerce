@@ -2,6 +2,7 @@ import React from "react";
 import {
   useGetProductsQuery,
   useCreateProductMutation,
+  useDeleteProductMutation,
 } from "../slices/productSlice";
 import Loader from "../../components/Loader";
 import { toast } from "react-toastify";
@@ -10,9 +11,10 @@ import { useNavigate } from "react-router-dom";
 const ProductList = () => {
   const { data: products, isLoading, error, refetch } = useGetProductsQuery();
   const navigate = useNavigate();
-  const [createProduct, { isLoading: loadingProduct }] =
+  const [createProduct, { isLoading: loadingCreate }] =
     useCreateProductMutation();
-
+  const [deleteProduct, { isLoading: loadingDelete }] =
+    useDeleteProductMutation();
   const handleCreateProduct = async () => {
     if (window.confirm("Are you sure you want to create a new product?")) {
       try {
@@ -29,9 +31,16 @@ const ProductList = () => {
     navigate(`/admin/product/${productId}/edit`);
   };
 
-  const handleDeleteProduct = (productId) => {
-    // Placeholder for delete product functionality
-    console.log("Delete product:", productId);
+  const handleDeleteProduct = async (productId) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      try {
+        await deleteProduct(productId).unwrap();
+        refetch();
+        toast.success("Product deleted successfully!");
+      } catch (err) {
+        toast.error(`Failed to delete product: ${err.message}`);
+      }
+    }
   };
 
   if (isLoading) {

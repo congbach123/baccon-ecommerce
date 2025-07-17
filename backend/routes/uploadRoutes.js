@@ -10,13 +10,18 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     cb(
       null,
-      `${file.fieldname} -${Date.now()}${path.extname(file.originalname)}`
+      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
     );
   },
 });
 
-function checkFileType(file, cb) {
-  const filetypes = /jpeg|jpg|png|gif/;
+function checkFileType(req, file, cb) {
+  // // Add null check to prevent TypeError
+  // if (!file || !file.originalname) {
+  //   return cb(new Error("Invalid file data"), false);
+  // }
+
+  const filetypes = /jpeg|jpg|png/;
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
   const mimetype = filetypes.test(file.mimetype);
 
@@ -26,4 +31,17 @@ function checkFileType(file, cb) {
     cb("Error: Images only!");
   }
 }
+
+const upload = multer({
+  storage,
+  fileFilter: checkFileType,
+});
+
+router.post("/", upload.single("image"), (req, res) => {
+  res.send({
+    message: "Image uploaded successfully",
+    image: `/${req.file.path}`,
+  });
+});
+
 export default router;
