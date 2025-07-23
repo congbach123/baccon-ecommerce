@@ -1,6 +1,7 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import Product from "../components/Product";
+import ProductCarousel from "../components/ProductCarousel"; // Add this import
 import Pagination from "../components/Pagination";
 import { useGetProductsQuery } from "./slices/productSlice";
 import { useParams, Link } from "react-router-dom";
@@ -9,8 +10,9 @@ const Home = () => {
   const { keyword, pageNumber } = useParams();
   const { data, error, isLoading } = useGetProductsQuery({
     keyword,
-    pageNumber: pageNumber, //
+    pageNumber: pageNumber,
   });
+
   return (
     <>
       {isLoading ? (
@@ -41,10 +43,13 @@ const Home = () => {
         <div className="min-h-screen bg-off-white">
           {/* Container */}
           <div className="max-w-7xl mx-auto px-6 py-12">
+            {/* Featured Products Carousel - Only show on home page, not on search results */}
+            {!keyword && <ProductCarousel />}
+
             {/* Header */}
             <div className="mb-12">
               <h1 className="text-5xl font-display font-bold text-coal tracking-tight mb-4">
-                Latest Products
+                {keyword ? `Search Results: ${keyword}` : "Latest Products"}
               </h1>
               <div className="w-24 h-1 bg-charcoal"></div>
             </div>
@@ -75,11 +80,13 @@ const Home = () => {
             )}
 
             {/* Pagination */}
-            <Pagination
-              pages={data.pages}
-              page={data.page}
-              keyword={keyword ? keyword : ""}
-            />
+            {data.products && data.products.length > 0 && (
+              <Pagination
+                pages={data.pages}
+                page={data.page}
+                keyword={keyword ? keyword : ""}
+              />
+            )}
           </div>
         </div>
       )}

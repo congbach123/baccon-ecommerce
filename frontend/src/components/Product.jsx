@@ -57,7 +57,7 @@ const Product = ({ product }) => {
               </svg>
             </button>
           </div>
-
+          {/*  */}
           {/* Product Info */}
           <div className="p-6 flex flex-col flex-grow">
             {/* Brand & Category */}
