@@ -11,8 +11,11 @@ const Product = ({ product }) => {
   return (
     <div className="group cursor-pointer">
       {/* Product Card with Link */}
-      <Link to={`/product/${product._id || product.id}`} className="block">
-        <div className="bg-white rounded-2xl overflow-hidden shadow-soft hover:shadow-medium transition-all duration-300 transform hover:-translate-y-1">
+      <Link
+        to={`/product/${product._id || product.id}`}
+        className="block h-full"
+      >
+        <div className="bg-white rounded-2xl overflow-hidden shadow-soft hover:shadow-medium transition-all duration-300 transform hover:-translate-y-1 flex flex-col h-full">
           {/* Product Image */}
           <div className="relative overflow-hidden bg-gray-50">
             <img
@@ -32,6 +35,8 @@ const Product = ({ product }) => {
                 Only {product.countInStock} left
               </div>
             )}
+
+            {/*  */}
             {/* Wishlist Button */}
             <button
               className="absolute top-4 right-4 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white"
@@ -54,7 +59,7 @@ const Product = ({ product }) => {
           </div>
 
           {/* Product Info */}
-          <div className="p-6">
+          <div className="p-6 flex flex-col flex-grow">
             {/* Brand & Category */}
             <div className="flex items-center justify-between mb-2">
               {product.brand && (
@@ -74,12 +79,15 @@ const Product = ({ product }) => {
               {product.name}
             </h3>
 
-            {/* Description */}
-            {product.description && (
-              <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                {product.description}
+            {/* Description - Fixed height container */}
+            <div className="min-h-[4.5rem] mb-4">
+              <p className="text-gray-600 text-sm line-clamp-3">
+                {product.description || ""}
               </p>
-            )}
+            </div>
+
+            {/* Auto-expanding spacer */}
+            <div className="flex-grow"></div>
 
             {/* Price & Rating Row */}
             <div className="flex items-center justify-between mb-4">

@@ -7,9 +7,13 @@ import {
 import Loader from "../../components/Loader";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-
+import Pagination from "../../components/Pagination";
+import { useParams } from "react-router-dom";
 const ProductList = () => {
-  const { data: products, isLoading, error, refetch } = useGetProductsQuery();
+  const { pageNumber } = useParams();
+  const { data, isLoading, error, refetch } = useGetProductsQuery({
+    pageNumber,
+  });
   const navigate = useNavigate();
   const [createProduct, { isLoading: loadingCreate }] =
     useCreateProductMutation();
@@ -112,7 +116,7 @@ const ProductList = () => {
 
         {/* Products Table */}
         <div className="bg-white rounded-2xl shadow-soft overflow-hidden">
-          {products && products.length > 0 ? (
+          {data.products && data.products.length > 0 ? (
             <>
               {/* Table Header */}
               <div className="bg-gray-100 px-6 py-4 border-b border-gray-200">
@@ -129,7 +133,7 @@ const ProductList = () => {
 
               {/* Table Body */}
               <div className="divide-y divide-gray-100">
-                {products.map((product, index) => (
+                {data.products.map((product, index) => (
                   <div
                     key={product._id}
                     className={`px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer ${
@@ -249,10 +253,12 @@ const ProductList = () => {
           )}
         </div>
 
+        <Pagination pages={data.pages} page={data.page} isAdmin={true} />
+
         {/* Footer Info */}
-        {products && products.length > 0 && (
+        {data.products && data.products.length > 0 && (
           <div className="mt-6 text-sm text-gray-500 text-center">
-            Showing {products.length} products
+            Showing {data.products.length} products
           </div>
         )}
       </div>

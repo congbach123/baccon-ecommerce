@@ -1,13 +1,16 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import Product from "../components/Product";
+import Pagination from "../components/Pagination";
 import { useGetProductsQuery } from "./slices/productSlice";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 
 const Home = () => {
-  const { pageNumber } = useParams();
-  const { data, error, isLoading } = useGetProductsQuery({ pageNumber });
-
+  const { keyword, pageNumber } = useParams();
+  const { data, error, isLoading } = useGetProductsQuery({
+    keyword,
+    pageNumber: pageNumber, //
+  });
   return (
     <>
       {isLoading ? (
@@ -47,11 +50,36 @@ const Home = () => {
             </div>
 
             {/* Products Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {data.products?.map((product) => (
-                <Product key={product._id} product={product} />
-              ))}
-            </div>
+            {data.products && data.products.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {data.products.map((product) => (
+                  <Product key={product._id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center">
+                <div className="text-6xl mb-4">🔍</div>
+                <h2 className="text-2xl font-display font-bold text-coal mb-3">
+                  No Products Found
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  We couldn't find any products matching your search criteria.
+                </p>
+                <Link
+                  to="/"
+                  className="inline-flex items-center px-4 py-2 bg-coal text-white rounded-lg hover:bg-charcoal transition-colors"
+                >
+                  <span className="mr-2">←</span> Back to all products
+                </Link>
+              </div>
+            )}
+
+            {/* Pagination */}
+            <Pagination
+              pages={data.pages}
+              page={data.page}
+              keyword={keyword ? keyword : ""}
+            />
           </div>
         </div>
       )}

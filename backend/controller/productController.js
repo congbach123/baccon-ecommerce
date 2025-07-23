@@ -7,13 +7,15 @@ import Product from "../models/productModel.js";
 const getProducts = asyncHandler(async (req, res) => {
   const pageSize = 4; // this should be made into a config variable
   const page = Number(req.query.page) || 1;
-  const count = await Product.countDocuments();
-  const products = await Product.find({})
+  const keyword = req.query.keyword
+    ? { name: { $regex: req.query.keyword, $options: "i" } }
+    : {};
+  const count = await Product.countDocuments({ ...keyword });
+  const products = await Product.find({ ...keyword })
     .limit(pageSize)
     .skip(pageSize * (page - 1));
   res.json({ products, page, pages: Math.ceil(count / pageSize) });
 });
-
 // @desc    Fetch product by ID
 // @route   GET /api/products/:id
 // @access  Public
@@ -26,7 +28,6 @@ const getProductById = asyncHandler(async (req, res) => {
     throw new Error("Resource not found");
   }
 });
-
 // @desc    Create a product
 // @route   POST /api/products
 // @access  Private/Admin

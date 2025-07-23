@@ -14,6 +14,7 @@ import {
   UnorderedListOutlined, // Added for Admin Orders icon
 } from "@ant-design/icons";
 import { toast } from "react-toastify";
+import SearchBox from "./SearchBox";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -74,6 +75,11 @@ const Header = () => {
                 Baccon
               </h1>
             </Link>
+          </div>
+
+          {/* Search Box - Added here */}
+          <div className="hidden md:block w-full max-w-md mx-4">
+            <SearchBox />
           </div>
 
           {/* Desktop Navigation */}
@@ -224,6 +230,10 @@ const Header = () => {
             isMenuOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
           } overflow-hidden`}
         >
+          {/* Search Box - Added here */}
+          <div className="hidden md:block w-full max-w-md mx-4">
+            <SearchBox />
+          </div>
           <nav className="py-4 space-y-2">
             <Link
               to="/cart"
